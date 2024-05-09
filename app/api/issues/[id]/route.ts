@@ -2,10 +2,6 @@ import { issueSchema } from "@/app/validationSchema";
 import prisma from "@/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-interface Props {
-  params: { params: { id: string } };
-}
-
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
