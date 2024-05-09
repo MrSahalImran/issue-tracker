@@ -1,7 +1,7 @@
 "use client";
 import ErrorMessage from "@/app/components/ErrorMessage";
 import Spinners from "@/app/components/Spinners";
-import { createIssueSchema } from "@/app/validationSchema";
+import { issueSchema } from "@/app/validationSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Issue } from "@prisma/client";
 import { Button, Callout, TextField } from "@radix-ui/themes";
@@ -13,33 +13,37 @@ import { Controller, useForm } from "react-hook-form";
 import SimpleMDE from "react-simplemde-editor";
 import { z } from "zod";
 
-interface Props{
-  issue?:Issue;
+interface Props {
+  issue?: Issue;
 }
 
-type issueFormData = z.infer<typeof createIssueSchema>;
+type issueFormData = z.infer<typeof issueSchema>;
 
-const IssueForm = ({issue}:Props) => {
+const IssueForm = ({ issue }: Props) => {
   const router = useRouter();
   const {
     register,
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<issueFormData>({ resolver: zodResolver(createIssueSchema) });
+  } = useForm<issueFormData>({ resolver: zodResolver(issueSchema) });
   const [error, setError] = useState("");
   const [isSubmitting, setSubmitting] = useState(false);
-  const onSubmit = handleSubmit(async data=>{
-    try{
+  const onSubmit = handleSubmit(async (data) => {
+    try {
       setSubmitting(true);
-      await axios.post("/api/issues", data);
+      if (issue) {
+        await axios.patch("/api/issues/" + issue.id, data);
+      } else {
+        await axios.post("/api/issues", data);
+      }
       router.push("/issues");
-    } catch (error){
+    } catch (error) {
       setSubmitting(false);
-      setError("Unexpected error occurred")
+      setError("Unexpected error occurred");
     }
-  })
-  
+  });
+
   return (
     <div className="max-w-xl">
       {error && (
@@ -47,12 +51,13 @@ const IssueForm = ({issue}:Props) => {
           <Callout.Text>{error}</Callout.Text>
         </Callout.Root>
       )}
-      <form
-        onSubmit={onSubmit}
-        className="space-y-3"
-      >
+      <form onSubmit={onSubmit} className="space-y-3">
         <TextField.Root>
-          <TextField.Input defaultValue={issue?.title} placeholder="Title" {...register("title")} />
+          <TextField.Input
+            defaultValue={issue?.title}
+            placeholder="Title"
+            {...register("title")}
+          />
         </TextField.Root>
         <ErrorMessage>{errors.title?.message}</ErrorMessage>
 
@@ -66,7 +71,7 @@ const IssueForm = ({issue}:Props) => {
         />
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
         <Button disabled={isSubmitting}>
-          Submit New Issue{isSubmitting && <Spinners />}
+          {issue ? 'Update Issue':'Submit New Issue'}{' '}{isSubmitting && <Spinners />}
         </Button>
       </form>
     </div>
