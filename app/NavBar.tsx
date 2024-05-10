@@ -13,7 +13,7 @@ const NavBar = () => {
       href: "/",
     },
     {
-      label: "issues",
+      label: "Issues",
       href: "/issues",
     },
   ];
