@@ -12,25 +12,21 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
     data: users,
     error,
     isLoading,
-  } = useQuery<User[]>({
-    queryKey: ["users"],
-    queryFn: () => axios.get("/api/users").then((response) => response.data),
-    staleTime: 60 * 1000,
-    retry: 3,
-  });
+  } = userUser();
   if (isLoading) return <Skeleton />;
   if (error) return null;
+  const assignIssue=(userId:string) => {
+    axios.patch('/api/issues/'+issue, {
+      assignedToUserId: userId || null,
+    }).catch(()=>{
+      toast.error('Changes could not be applied')
+    })
+  }
   return (
     <>
       <Select.Root
         defaultValue={issue.assignedToUserId || ""}
-        onValueChange={(userId) => {
-          axios.patch('/api/issues/'+issue, {
-            assignedToUserId: userId || null,
-          }).catch(()=>{
-            toast.error('Changes could not be applied')
-          })
-        }}
+        onValueChange={assignIssue}
       >
         <Select.Trigger placeholder="Assign..." />
         <Select.Content>
@@ -50,5 +46,12 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
     </>
   );
 };
+
+const userUser = () => useQuery<User[]>({
+  queryKey: ["users"],
+  queryFn: () => axios.get("/api/users").then((response) => response.data),
+  staleTime: 60 * 1000,
+  retry: 3,
+})
 
 export default AssigneeSelect;
